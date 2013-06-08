@@ -4,56 +4,67 @@ import CopyEdit.pyperclip as pyperclip
 selection_strings = []
 
 
+def print_status_message(verb):
+	numchars = sum([len(s) for s in selection_strings])
+	message = "{} {} characters".format(verb, numchars)
+	if len(selection_strings) > 1:
+		message += " over {} selection regions".format(len(selection_strings))
+	sublime.status_message(message)
+
 ##TODO: read copy-whole-line option or whatever
 class CopyEditCommand(sublime_plugin.TextCommand):
-	def run(self, edit):
+	def copy(self, edit):
 		selection_strings.clear()
 		for s in self.view.sel():
 			selection_strings.append(self.view.substr(s))
 		pyperclip.copy('\n'.join(selection_strings))
-		numchars = sum([len(s) for s in selection_strings])
-		message = "Copied {} characters".format(numchars)
-		if len(selection_strings) > 1:
-			message += " over {} selection regions".format(len(selection_strings))
-		sublime.status_message(message)
+	
+	def run(self, edit, verb="Copied"):
+		self.copy(edit)
+		print_status_message(verb)
 
 class CutEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		self.view.run_command("copy_edit")
+		self.view.run_command("copy_edit", args={"verb":"Cut"})
 		for s in self.view.sel():
 			self.view.erase(edit, s)
 
 class PasteEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
+		
 		#check if clipboard is more up to date
 		pasteboard = pyperclip.paste()
-		joiner = ''
+		from_clipboard = False
 		if pasteboard != '\n'.join(selection_strings):
 			selection_strings.clear()
 			selection_strings.extend(pasteboard.split('\n'))
-			joiner = '\n'
+			from_clipboard = True
 		
 		print(selection_strings)
 		numstrings = len(selection_strings)
 		numsels = len(self.view.sel())
-		if numstrings == numsels:
-			for sel, string in zip(self.view.sel(), selection_strings):
-				self.view.erase(edit, sel)
-				self.view.insert(edit, sel.begin(), string)
-		if numstrings < numsels and numsels % numstrings == 0:
-			str_index = 0
-			for sel in self.view.sel():
-				self.view.erase(edit, sel)
-				self.view.insert(edit, sel.begin(), selection_strings[str_index])
-				str_index = (str_index + 1) % numstrings
-		if numsels < numstrings and numstrings % numsels == 0:
+		if numsels == 0:
+			return
+		
+		if numstrings <= numsels and numsels % numstrings == 0:
+			strs_per_sel = 1
+		elif numsels < numstrings and numstrings % numsels == 0:
 			strs_per_sel = int(numstrings / numsels)
-			str_index = 0
-			for sel in self.view.sel():
-				self.view.erase(edit, sel)
-				insertion = joiner.join(selection_strings[str_index:str_index+strs_per_sel])
-				self.view.insert(edit, sel.begin(), insertion)
-				str_index += strs_per_sel
+		else:
+			strs_per_sel = numstrings
 		
+		str_index = 0
+		new_sels = []
+		for sel in self.view.sel():
+			self.view.erase(edit, sel)
+			insertion_point = sel.begin()
+			for string in selection_strings[str_index:str_index+strs_per_sel]:
+				self.view.insert(edit, insertion_point, string)
+				insertion_point += len(string)
+				region = sublime.Region(insertion_point)
+				new_sels.append(region)
+			str_index = (str_index + strs_per_sel) % numstrings
 		
-		#empty all sels
+		self.view.sel().clear()
+		for s in new_sels:
+			self.view.sel().add(s)
