@@ -14,14 +14,18 @@ def print_status_message(verb):
 ##TODO: read copy-whole-line option or whatever
 class CopyEditCommand(sublime_plugin.TextCommand):
 	def copy(self, edit):
+		if sum([len(s) for s in self.view.sel()]) == 0:
+			return False
+		
 		selection_strings.clear()
 		for s in self.view.sel():
 			selection_strings.append(self.view.substr(s))
 		pyperclip.copy('\n'.join(selection_strings))
+		return True
 	
 	def run(self, edit, verb="Copied"):
-		self.copy(edit)
-		print_status_message(verb)
+		if self.copy(edit):
+			print_status_message(verb)
 
 class CutEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
