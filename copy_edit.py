@@ -1,5 +1,8 @@
 import sublime, sublime_plugin
-import CopyEdit.pyperclip as pyperclip
+if int(sublime.version()) < 3000:
+	import pyperclip
+else:
+	import CopyEdit.pyperclip as pyperclip
 
 selection_strings = []
 
@@ -16,9 +19,9 @@ selection_strings = []
 def print_status_message(verb, numregions=None):
 	numregions = numregions or len(selection_strings)
 	numchars = sum([len(s) for s in selection_strings])
-	message = "{} {} character{}".format(verb, numchars, 's' if numchars != 1 else '')
+	message = "{0} {1} character{2}".format(verb, numchars, 's' if numchars != 1 else '')
 	if numregions > 1:
-		message += " over {} selection regions".format(numregions)
+		message += " over {0} selection regions".format(numregions)
 	sublime.status_message(message)
 
 class CopyEditCommand(sublime_plugin.TextCommand):
@@ -34,7 +37,7 @@ class CopyEditCommand(sublime_plugin.TextCommand):
 				new_sel_strings.append(self.view.substr(self.view.full_line(s)))
 		
 		if len(new_sel_strings) > 0:
-			selection_strings.clear()
+			selection_strings[:] = [] #.clear() doesn't exist in 2.7
 			selection_strings.extend(new_sel_strings)
 			pyperclip.copy('\n'.join(selection_strings))
 			return True
@@ -57,7 +60,7 @@ class PasteEditCommand(sublime_plugin.TextCommand):
 		pasteboard = pyperclip.paste()
 		from_clipboard = False
 		if pasteboard != '\n'.join(selection_strings):
-			selection_strings.clear()
+			selection_strings[:] = [] #.clear() doesn't exist in 2.7
 			selection_strings.append(pasteboard)
 			from_clipboard = True #what should be done in this case?
 		
