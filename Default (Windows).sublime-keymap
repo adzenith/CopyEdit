@@ -4,5 +4,5 @@
 	{ "keys": ["shift+insert"], "command": "paste_edit" },
 	{ "keys": ["ctrl+x"], "command": "cut_edit" },
 	{ "keys": ["ctrl+c"], "command": "copy_edit" },
-	{ "keys": ["ctrl+v"], "command": "paste_edit" },
+	{ "keys": ["ctrl+v"], "command": "paste_edit" }
 ]
