@@ -3,6 +3,15 @@ import CopyEdit.pyperclip as pyperclip
 
 selection_strings = []
 
+#A note about copy_with_empty_selection
+#----------------------------------------
+#The way the built-in copy works is like this:
+#all non-empty sels: copy them
+#all empty sels: copy each whole line
+#some non-empty sels, some empty: copy only the non-empty
+#We're not going to do that, though. If they want to copy empty lines, we'll
+#always copy empty lines. I don't understand the copying empty lines in the
+#first place, but I would rather be internally consistent.
 
 def print_status_message(verb, numregions=None):
 	numregions = numregions or len(selection_strings)
@@ -12,17 +21,24 @@ def print_status_message(verb, numregions=None):
 		message += " over {} selection regions".format(numregions)
 	sublime.status_message(message)
 
-##TODO: read copy-whole-line option or whatever
 class CopyEditCommand(sublime_plugin.TextCommand):
 	def copy(self, edit):
-		if sum([len(s) for s in self.view.sel()]) == 0:
-			return False
+		#See copy_with_empty_selection note above.
+		copy_with_empty_sel = self.view.settings().get("copy_with_empty_selection")
 		
-		selection_strings.clear()
+		new_sel_strings = []
 		for s in self.view.sel():
-			selection_strings.append(self.view.substr(s))
-		pyperclip.copy('\n'.join(selection_strings))
-		return True
+			if len(s):
+				new_sel_strings.append(self.view.substr(s))
+			elif copy_with_empty_sel:
+				new_sel_strings.append(self.view.substr(self.view.full_line(s)))
+		
+		if len(new_sel_strings) > 0:
+			selection_strings.clear()
+			selection_strings.extend(new_sel_strings)
+			pyperclip.copy('\n'.join(selection_strings))
+			return True
+		return False
 	
 	def run(self, edit, verb="Copied"):
 		if self.copy(edit):
