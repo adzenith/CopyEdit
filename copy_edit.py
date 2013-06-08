@@ -4,11 +4,12 @@ import CopyEdit.pyperclip as pyperclip
 selection_strings = []
 
 
-def print_status_message(verb):
+def print_status_message(verb, numregions=None):
+	numregions = numregions or len(selection_strings)
 	numchars = sum([len(s) for s in selection_strings])
-	message = "{} {} characters".format(verb, numchars)
-	if len(selection_strings) > 1:
-		message += " over {} selection regions".format(len(selection_strings))
+	message = "{} {} character{}".format(verb, numchars, 's' if numchars != 1 else '')
+	if numregions > 1:
+		message += " over {} selection regions".format(numregions)
 	sublime.status_message(message)
 
 ##TODO: read copy-whole-line option or whatever
@@ -68,6 +69,8 @@ class PasteEditCommand(sublime_plugin.TextCommand):
 				region = sublime.Region(insertion_point)
 				new_sels.append(region)
 			str_index = (str_index + strs_per_sel) % numstrings
+		
+		print_status_message("Pasted", len(self.view.sel()))
 		
 		self.view.sel().clear()
 		for s in new_sels:
