@@ -42,8 +42,8 @@ class PasteEditCommand(sublime_plugin.TextCommand):
 		from_clipboard = False
 		if pasteboard != '\n'.join(selection_strings):
 			selection_strings.clear()
-			selection_strings.extend(pasteboard.split('\n'))
-			from_clipboard = True
+			selection_strings.append(pasteboard)
+			from_clipboard = True #what should be done in this case?
 		
 		print(selection_strings)
 		numstrings = len(selection_strings)
