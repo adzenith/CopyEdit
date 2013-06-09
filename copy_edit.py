@@ -64,7 +64,6 @@ class PasteEditCommand(sublime_plugin.TextCommand):
 			selection_strings.append(pasteboard)
 			from_clipboard = True #what should be done in this case?
 		
-		print(selection_strings)
 		numstrings = len(selection_strings)
 		numsels = len(self.view.sel())
 		if numsels == 0:
