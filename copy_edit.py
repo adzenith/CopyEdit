@@ -1,8 +1,4 @@
 import sublime, sublime_plugin
-if int(sublime.version()) < 3000:
-	import pyperclip
-else:
-	import CopyEdit.pyperclip as pyperclip
 
 selection_strings = []
 
@@ -39,7 +35,7 @@ class CopyEditCommand(sublime_plugin.TextCommand):
 		if len(new_sel_strings) > 0:
 			selection_strings[:] = [] #.clear() doesn't exist in 2.7
 			selection_strings.extend(new_sel_strings)
-			pyperclip.copy('\n'.join(selection_strings))
+			sublime.set_clipboard('\n'.join(selection_strings))
 			return True
 		return False
 	
@@ -57,7 +53,7 @@ class PasteEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		
 		#check if clipboard is more up to date
-		pasteboard = pyperclip.paste()
+		pasteboard = sublime.get_clipboard()
 		from_clipboard = False
 		if pasteboard != '\n'.join(selection_strings):
 			selection_strings[:] = [] #.clear() doesn't exist in 2.7
