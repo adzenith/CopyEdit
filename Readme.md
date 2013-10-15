@@ -15,6 +15,6 @@ that too!
 # Installation
 
  - Install [Package Control](http://wbond.net/sublime_packages/package_control/installation).
- - Run Package Control's `Add Repository` command from the Command
+ - Run Package Control's `Install Package` command from the Command
    Palette (cmd+shift+P by default).
- - Add `https://github.com/adzenith/CopyEdit.git.`
+ - Install CopyEdit!
