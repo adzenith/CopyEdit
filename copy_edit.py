@@ -2,6 +2,8 @@ import sublime, sublime_plugin
 
 selection_strings = []
 
+line_endings = {'CR': '\r', 'Unix': '\n', 'Windows': '\r\n'}
+
 #A note about copy_with_empty_selection
 #----------------------------------------
 #The way the built-in copy works is like this:
@@ -35,7 +37,8 @@ class CopyEditCommand(sublime_plugin.TextCommand):
 		if len(new_sel_strings) > 0:
 			selection_strings[:] = [] #.clear() doesn't exist in 2.7
 			selection_strings.extend(new_sel_strings)
-			sublime.set_clipboard('\n'.join(selection_strings))
+			line_ending = line_endings[self.view.line_endings()]
+			sublime.set_clipboard(line_ending.join(selection_strings))
 			return True
 		return False
 	
